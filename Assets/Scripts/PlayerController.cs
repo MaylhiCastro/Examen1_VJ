@@ -9,6 +9,8 @@ public class PlayerController : MonoBehaviour
     Rigidbody2D rb;
     SpriteRenderer sr;
     Animator animator;
+    public int saltosPermitidos =2;
+    public int saltoActual = 0;
     public float velocity = 10;
     public float vcaminar =4;
     const int ANIMATION_QUIETO =0;
@@ -18,6 +20,7 @@ public class PlayerController : MonoBehaviour
     const int ANIMATION_ATACAR =4;
     public float jumpForce =5;
     bool puedeSaltar =true;
+    private Vector3 lastCheckpointPosition;
     void Start()
     {
        Debug.Log("Inicializando"); 
@@ -53,12 +56,31 @@ public class PlayerController : MonoBehaviour
              changeAnimation(ANIMATION_CORRER);
              
         }
-        if (Input.GetKeyUp(KeyCode.Space)&& puedeSaltar)
+        if (Input.GetKeyUp(KeyCode.Space)&& (puedeSaltar||saltosPermitidos>saltoActual))
         {
             rb.AddForce(new Vector2(0,jumpForce),ForceMode2D.Impulse);
-            puedeSaltar = false;
             changeAnimation(ANIMATION_SALTAR);
+            saltoActual++;
+            puedeSaltar = false;
         }
+        if(Input.GetKey(KeyCode.Z)){
+            changeAnimation(ANIMATION_ATACAR);
+        }
+    }
+    void OnCollisionEnter2D(Collision2D other){
+        puedeSaltar = true;
+      if(other.gameObject.tag == "Enemigo"){
+        Debug.Log("Estas muerto");
+      }
+      if(other.gameObject.name =="DarkHole"){//Regresar al checkpoint
+        if(lastCheckpointPosition != null){
+          transform.position = lastCheckpointPosition;
+        }
+      }
+    }
+    void OnTriggerEnter2D(Collider2D other){//Puede traspasar el objeto
+      Debug.Log("trigger");
+      lastCheckpointPosition = transform.position;
     }
     void changeAnimation (int animation){
         animator.SetInteger("Estado",animation);
